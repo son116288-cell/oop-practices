@@ -1,0 +1,412 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+class PhuongTien {
+private:
+    int maXe;
+    string loaiXe;
+    int gioVao;
+    int thoiLuong;
+
+public:
+    PhuongTien();
+    PhuongTien(int ma, string loai, int gio, int tg);
+    int layMaXe() const;
+    string layLoaiXe() const;
+    int layGioVao() const;
+    int layThoiLuong() const;
+    void ganMaXe(int ma);
+    double tinhPhi() const;
+    void hienThi() const;
+};
+PhuongTien::PhuongTien() : maXe(0), loaiXe(""), gioVao(0), thoiLuong(0) {}
+PhuongTien::PhuongTien(int ma, string loai, int gio, int tg)
+    : maXe(ma), loaiXe(loai), gioVao(gio), thoiLuong(tg) {}
+int PhuongTien::layMaXe() const { return maXe; }
+string PhuongTien::layLoaiXe() const { return loaiXe; }
+int PhuongTien::layGioVao() const { return gioVao; }
+int PhuongTien::layThoiLuong() const { return thoiLuong; }
+void PhuongTien::ganMaXe(int ma) { maXe = ma; }
+double PhuongTien::tinhPhi() const {
+    double gia = (loaiXe == "Car") ? 6.0 : (loaiXe == "Motorcycle") ? 4.0 : 2.0;
+    bool caoDiem = (gioVao >= 6 && gioVao <= 9) || (gioVao >= 15 && gioVao <= 18);
+    double tong = 0;
+    for (int h = 0; h < thoiLuong; ++h) {
+        if (h < 2) tong += gia * (caoDiem ? 1.30 : 0.95);
+        else        tong += gia * 0.90;
+    }
+    return tong;
+}
+void PhuongTien::hienThi() const {
+    cout << "  ID: " << maXe << " | " << loaiXe
+         << " | " << gioVao << "h | " << thoiLuong << "h"
+         << " | Phi: $" << fixed << setprecision(2) << tinhPhi() << "\n";
+}
+class BaiDoXe {
+private:
+    int maBai;
+    char kichThuoc;
+    static const int MAX_VEHICLES = 3;
+    PhuongTien danhSachXe[MAX_VEHICLES];
+    int soLuongXe;
+
+
+
+
+
+public:
+    BaiDoXe();
+    BaiDoXe(int ma, char kt);
+
+    int layMaBai() const;
+    char layKichThuoc() const;
+    int laySoLuongXe() const;
+    bool day() const;
+    int timViTriXe(int maXe) const;
+    bool themXe(const PhuongTien& v);
+    bool xoaXe(int maXe);
+    bool chuaXe(int maXe) const;
+    void hienThiThongTin() const;
+    void hienThiTheoLoai(string loai) const;
+    bool coLoai(string loai, int& dem, double& tong) const;
+};
+BaiDoXe::BaiDoXe() : maBai(0), kichThuoc('S'), soLuongXe(0) {}
+BaiDoXe::BaiDoXe(int ma, char kt) : maBai(ma), kichThuoc(kt), soLuongXe(0) {}
+int BaiDoXe::layMaBai() const { return maBai; }
+char BaiDoXe::layKichThuoc() const { return kichThuoc; }
+int BaiDoXe::laySoLuongXe() const { return soLuongXe; }
+
+bool BaiDoXe::day() const {
+    int sucChua = (kichThuoc == 'S') ? 1 : (kichThuoc == 'M') ? 2 : 3;
+    return soLuongXe >= sucChua;
+}
+int BaiDoXe::timViTriXe(int maXe) const {
+    for (int i = 0; i < soLuongXe; ++i) {
+        if (danhSachXe[i].layMaXe() == maXe) {
+            return i;
+        }
+    }
+    return -1;
+}
+bool BaiDoXe::themXe(const PhuongTien& v) {
+    int sucChua = (kichThuoc == 'S') ? 1 : (kichThuoc == 'M') ? 2 : 3;
+    if (soLuongXe >= sucChua) return false;
+    danhSachXe[soLuongXe] = v;
+    soLuongXe++;
+    return true;
+}
+bool BaiDoXe::xoaXe(int maXe) {
+    int viTri = timViTriXe(maXe);
+    if (viTri == -1) return false;
+    for (int i = viTri; i < soLuongXe - 1; ++i) {
+        danhSachXe[i] = danhSachXe[i + 1];
+    }
+    soLuongXe--;
+    return true;
+}
+bool BaiDoXe::chuaXe(int maXe) const {
+    return timViTriXe(maXe) != -1;
+}
+void BaiDoXe::hienThiThongTin() const {
+    int sucChua = (kichThuoc == 'S') ? 1 : (kichThuoc == 'M') ? 2 : 3;
+    cout << "Bai " << maBai << " [" << kichThuoc << "] "
+         << soLuongXe << "/" << sucChua << " xe\n";
+    for (int i = 0; i < soLuongXe; ++i) {
+        danhSachXe[i].hienThi();
+    }
+}
+
+void BaiDoXe::hienThiTheoLoai(string loai) const {
+    cout << "Bai " << maBai << " [" << kichThuoc << "]\n";
+    for (int i = 0; i < soLuongXe; ++i) {
+        if (danhSachXe[i].layLoaiXe() == loai) {
+            danhSachXe[i].hienThi();
+        }
+    }
+}
+
+bool BaiDoXe::coLoai(string loai, int& dem, double& tong) const {
+    dem = 0;
+    tong = 0;
+    for (int i = 0; i < soLuongXe; ++i) {
+        if (danhSachXe[i].layLoaiXe() == loai) {
+            ++dem;
+            tong += danhSachXe[i].tinhPhi();
+        }
+    }
+    return dem > 0;
+}
+class SystemInterface {
+private:
+    static const int MAX_LOTS = 10;
+    BaiDoXe danhSachBai[MAX_LOTS];
+    int soLuongBai;
+    int sinhMaNgauNhien() const;
+    int timViTriBai(int maBai) const;
+
+public:
+    SystemInterface();
+    bool kiemTraTrungMaBai(int maBai) const;
+    bool kiemTraTrungMaXe(int maXe) const;
+    void runMenu();
+};
+SystemInterface::SystemInterface() : soLuongBai(0) {
+    srand(static_cast<unsigned int>(time(0)));
+}
+
+int SystemInterface::sinhMaNgauNhien() const {
+    return 1000 + rand() % 9000;
+}
+
+int SystemInterface::timViTriBai(int maBai) const {
+    for (int i = 0; i < soLuongBai; ++i) {
+        if (danhSachBai[i].layMaBai() == maBai) {
+            return i;
+        }
+    }
+    return -1;
+}
+bool SystemInterface::kiemTraTrungMaBai(int maBai) const {
+    return timViTriBai(maBai) != -1;
+}
+bool SystemInterface::kiemTraTrungMaXe(int maXe) const {
+    for (int i = 0; i < soLuongBai; ++i) {
+        if (danhSachBai[i].chuaXe(maXe)) {
+            return true;
+        }
+    }
+    return false;
+}
+void SystemInterface::runMenu() {
+    int chon;
+    while (true) {
+        cout << "\nQUAN LY BAI DO XE - GIAI DOAN 2\n";
+        cout << "1. Tao bai do xe moi\n";
+        cout << "2. Them xe vao bai do\n";
+        cout << "3. Xoa mot bai do xe\n";
+        cout << "4. Lay xe ra khoi bai do\n";
+        cout << "5. Hien thi danh sach tat ca cac bai do xe\n";
+        cout << "6. Hien thi danh sach xe theo bai cu the\n";
+        cout << "7. Liet ke xe theo loai phuong tien\n";
+        cout << "8. Tom tat phi do xe trung binh\n";
+        cout << "9. Thoat chuong trinh\n";
+        cout << "Chon: ";
+        
+        if (!(cin >> chon)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Loi nhap lieu! Vui long nhap so tu 1 den 9.\n";
+            continue;
+        }
+        switch (chon) {
+            case 1: {
+                if (soLuongBai >= MAX_LOTS) {
+                    cout << "Da dat toi da " << MAX_LOTS << " bai do!\n";
+                    break;
+                }
+                int ma;
+                char kt;
+                cout << "Ma bai: ";
+                if (!(cin >> ma)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap ma bai!\n";
+                    break;
+                }
+                cout << "Kich thuoc (S/M/L): ";
+                cin >> kt;
+
+                if (kiemTraTrungMaBai(ma)) {
+                    int maMoi = sinhMaNgauNhien();
+                    while (kiemTraTrungMaBai(maMoi)) {
+                        maMoi = sinhMaNgauNhien();
+                    }
+                    cout << "Canh bao: Ma bai " << ma << " da ton tai! Tu dong doi thanh ma ngau nhien: " << maMoi << "\n";
+                    ma = maMoi;
+                }
+
+                danhSachBai[soLuongBai] = BaiDoXe(ma, kt);
+                soLuongBai++;
+                cout << "Da tao thanh cong bai do " << ma << " voi kich thuoc [" << kt << "]\n";
+                break;
+            }
+            case 2: {
+                if (soLuongBai == 0) {
+                    cout << "Chua co bai do xe nao trong he thong! Vui long tao bai do truoc.\n";
+                    break;
+                }
+                int ma, gio, tg;
+                string loai;
+                cout << "Ma xe: ";
+                if (!(cin >> ma)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap ma xe!\n";
+                    break;
+                }
+                cout << "Loai xe (Car/Motorcycle/Bicycle): ";
+                cin >> loai;
+                cout << "Gio vao (0-23): ";
+                if (!(cin >> gio)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap gio vao!\n";
+                    break;
+                }
+                cout << "Thoi luong (gio): ";
+                if (!(cin >> tg)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap thoi luong!\n";
+                    break;
+                }
+
+                if (kiemTraTrungMaXe(ma)) {
+                    int maMoi = sinhMaNgauNhien();
+                    while (kiemTraTrungMaXe(maMoi)) {
+                        maMoi = sinhMaNgauNhien();
+                    }
+                    cout << "Canh bao: Ma xe " << ma << " da ton tai! Tu dong doi thanh ma ngau nhien: " << maMoi << "\n";
+                    ma = maMoi;
+                }
+
+                PhuongTien v(ma, loai, gio, tg);
+                bool daXep = false;
+                for (int i = 0; i < soLuongBai; ++i) {
+                    if (!danhSachBai[i].day()) {
+                        danhSachBai[i].themXe(v);
+                        daXep = true;
+                        cout << "Da them xe " << ma << " vao bai " << danhSachBai[i].layMaBai() 
+                             << " | Phi: $" << fixed << setprecision(2) << v.tinhPhi() << "\n";
+                        break;
+                    }
+                }
+
+                if (!daXep) {
+                    cout << "Tat ca cac bai do xe hien tai deu da day!\n";
+                }
+                break;
+            }
+            case 3: {
+                int ma;
+                cout << "Ma bai can xoa: ";
+                if (!(cin >> ma)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap ma bai!\n";
+                    break;
+                }
+                int viTri = timViTriBai(ma);
+                if (viTri == -1) {
+                    cout << "Khong tim thay bai do co ma " << ma << "\n";
+                    break;
+                }
+                for (int i = viTri; i < soLuongBai - 1; ++i) {
+                    danhSachBai[i] = danhSachBai[i + 1];
+                }
+                soLuongBai--;
+                cout << "Da xoa bai do " << ma << " va don mang thanh cong!\n";
+                break;
+            }
+            case 4: {
+                int ma;
+                cout << "Ma xe can lay ra: ";
+                if (!(cin >> ma)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap ma xe!\n";
+                    break;
+                }
+                bool daTimVaXoa = false;
+                for (int i = 0; i < soLuongBai; ++i) {
+                    if (danhSachBai[i].chuaXe(ma)) {
+                        danhSachBai[i].xoaXe(ma);
+                        daTimVaXoa = true;
+                        cout << "Da lay xe " << ma << " ra khoi bai " << danhSachBai[i].layMaBai() << " va don mang xe thanh cong!\n";
+                        break;
+                    }
+                }
+                if (!daTimVaXoa) {
+                    cout << "Khong tim thay xe co ma " << ma << " trong he thong!\n";
+                }
+                break;
+            }
+            case 5: {
+                if (soLuongBai == 0) {
+                    cout << "He thong chua co bai do xe nao!\n";
+                    break;
+                }
+                cout << "\n--- DANH SACH TAT CA CAC BAI DO XE ---\n";
+                for (int i = 0; i < soLuongBai; ++i) {
+                    danhSachBai[i].hienThiThongTin();
+                }
+                break;
+            }
+            case 6: {
+                int ma;
+                cout << "Ma bai can xem: ";
+                if (!(cin >> ma)) {
+                    cin.clear(); cin.ignore(10000, '\n');
+                    cout << "Loi nhap ma bai!\n";
+                    break;
+                }
+                int viTri = timViTriBai(ma);
+                if (viTri == -1) {
+                    cout << "Khong tim thay bai do!\n";
+                    break;
+                }
+                danhSachBai[viTri].hienThiThongTin();
+                break;
+            }
+            case 7: {
+                string loai;
+                cout << "Loai xe can liet ke (Car/Motorcycle/Bicycle): ";
+                cin >> loai;
+                bool coXe = false;
+                cout << "\n--- DANH SACH XE LOAI " << loai << " ---\n";
+                for (int i = 0; i < soLuongBai; ++i) {
+                    int dem = 0; double tong = 0;
+                    if (danhSachBai[i].coLoai(loai, dem, tong)) {
+                        danhSachBai[i].hienThiTheoLoai(loai);
+                        coXe = true;
+                    }
+                }
+                if (!coXe) {
+                    cout << "Khong co xe nao thuoc loai " << loai << " trong he thong!\n";
+                }
+                break;
+            }
+            case 8: {
+                string loaiArr[3] = {"Car", "Motorcycle", "Bicycle"};
+                cout << "\n--- BAO CAO PHI DO XE TRUNG BINH ---\n";
+                for (int t = 0; t < 3; ++t) {
+                    int tongDem = 0;
+                    double tongPhi = 0;
+                    for (int i = 0; i < soLuongBai; ++i) {
+                        int dem = 0; double tong = 0;
+                        if (danhSachBai[i].coLoai(loaiArr[t], dem, tong)) {
+                            tongDem += dem;
+                            tongPhi += tong;
+                        }
+                    }
+                    cout << loaiArr[t] << ": ";
+                    if (tongDem == 0) {
+                        cout << "Khong co xe\n";
+                    } else {
+                        cout << tongDem << " xe | Trung binh: $" << fixed << setprecision(2) << (tongPhi / tongDem) << "\n";
+                    }
+                }
+                break;
+            }
+            case 9:
+                return;
+            default:
+                cout << "Lua chon khong hop le! Vui long chon tu 1 den 9.\n";
+                break;
+        }
+    }
+}
+int main() {
+    SystemInterface heThong;
+    heThong.runMenu();
+    return 0;
+}
